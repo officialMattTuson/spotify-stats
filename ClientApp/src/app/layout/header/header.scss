@@ -1,0 +1,29 @@
+.container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem;
+}
+
+.header {
+  &__left {
+    display: flex;
+    gap: 0.5rem;
+    justify-content: flex-start;
+    align-items: center;
+    color: var(--color-primary);
+  }
+
+  &__right {
+    color: var(--color-secondary);
+  }
+
+  &__title {
+    font-weight: 500;
+    font-size: 1.25rem;
+  }
+}
+
+#divider {
+  border-top-color: var(--color-secondary);
+}
