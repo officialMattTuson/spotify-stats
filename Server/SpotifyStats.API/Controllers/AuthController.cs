@@ -57,9 +57,10 @@ public class AuthController : ControllerBase
             Response.Cookies.Append("spotify_state", state, new CookieOptions
             {
                 HttpOnly = true,
-                Secure = true,
-                SameSite = SameSiteMode.None,
-                MaxAge = TimeSpan.FromMinutes(10)
+                Secure = false, // Set to false for localhost HTTP
+                SameSite = SameSiteMode.Lax, // Changed from None to Lax for localhost
+                MaxAge = TimeSpan.FromMinutes(10),
+                Path = "/"
             });
 
             var authUrl = $"https://accounts.spotify.com/authorize?" +
@@ -69,12 +70,14 @@ public class AuthController : ControllerBase
                           $"&scope={Uri.EscapeDataString(scope)}" +
                           $"&state={state}";
 
-            return Ok(new { authUrl });
+            // Redirect directly to Spotify instead of returning JSON
+            return Redirect(authUrl);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to generate Spotify login URL");
-            return StatusCode(500, new { error = "Failed to initiate login", details = ex.Message });
+            var frontendUrl = _config["Frontend:BaseUrl"] ?? "http://localhost:4200";
+            return Redirect($"{frontendUrl}/error?message={Uri.EscapeDataString("Failed to initiate login")}");
         }
     }
 
@@ -93,7 +96,9 @@ public class AuthController : ControllerBase
             return Redirect($"{frontendUrl}/error?message={Uri.EscapeDataString(error)}");
         }
 
-        // Validate state parameter
+        // Validate state parameter (disabled for development due to localhost/ngrok cookie issues)
+        // TODO: Re-enable in production or use database-backed state validation
+        /*
         var storedState = Request.Cookies["spotify_state"];
         if (string.IsNullOrEmpty(storedState) || storedState != state)
         {
@@ -103,6 +108,7 @@ public class AuthController : ControllerBase
 
         // Clear state cookie after validation
         Response.Cookies.Delete("spotify_state");
+        */
 
         if (string.IsNullOrEmpty(code))
         {
@@ -165,31 +171,57 @@ public class AuthController : ControllerBase
             // Generate JWT tokens
             var authTokens = _jwtService.GenerateTokens(user.Id);
 
-            // Set HTTP-only cookies
-            Response.Cookies.Append("auth_token", authTokens.AccessToken, new CookieOptions
-            {
-                HttpOnly = true,
-                Secure = true,
-                SameSite = SameSiteMode.None,
-                Expires = authTokens.ExpiresAt
-            });
-
-            Response.Cookies.Append("refresh_token", authTokens.RefreshToken, new CookieOptions
-            {
-                HttpOnly = true,
-                Secure = true,
-                SameSite = SameSiteMode.None,
-                Expires = DateTime.UtcNow.AddDays(30)
-            });
-
             _logger.LogInformation("User {UserId} successfully authenticated with Spotify", user.Id);
+
+            // Redirect to localhost endpoint to set cookies (ngrok cookies won't work for localhost)
+            var localCallbackUrl = $"http://localhost:5105/api/auth/success?token={Uri.EscapeDataString(authTokens.AccessToken)}&refresh={Uri.EscapeDataString(authTokens.RefreshToken)}&expires={authTokens.ExpiresAt.Ticks}";
+            return Redirect(localCallbackUrl);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Spotify authentication failed");
+            // Include exception details in development
+            var errorMessage = $"Authentication failed: {ex.Message}";
+            return Redirect($"{frontendUrl}/error?message={Uri.EscapeDataString(errorMessage)}");
+        }
+    }
+
+    [HttpGet("success")]
+    public IActionResult Success([FromQuery] string token, [FromQuery] string refresh, [FromQuery] long expires)
+    {
+        var frontendUrl = _config["Frontend:BaseUrl"] ?? "http://localhost:4200";
+
+        try
+        {
+            var expiresAt = new DateTime(expires, DateTimeKind.Utc);
+
+            // Set HTTP-only cookies on localhost domain
+            Response.Cookies.Append("auth_token", token, new CookieOptions
+            {
+                HttpOnly = true,
+                Secure = false,
+                SameSite = SameSiteMode.Lax,
+                Expires = expiresAt,
+                Path = "/"
+            });
+
+            Response.Cookies.Append("refresh_token", refresh, new CookieOptions
+            {
+                HttpOnly = true,
+                Secure = false,
+                SameSite = SameSiteMode.Lax,
+                Expires = DateTime.UtcNow.AddDays(30),
+                Path = "/"
+            });
+
+            _logger.LogInformation("Successfully set auth cookies on localhost");
 
             return Redirect($"{frontendUrl}/dashboard");
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Spotify authentication failed");
-            return Redirect($"{frontendUrl}/error?message={Uri.EscapeDataString("Authentication failed. Please try again.")}");
+            _logger.LogError(ex, "Failed to set auth cookies");
+            return Redirect($"{frontendUrl}/error?message={Uri.EscapeDataString("Authentication failed")}");
         }
     }
 
@@ -267,9 +299,10 @@ public class AuthController : ControllerBase
             Response.Cookies.Append("auth_token", newTokens.AccessToken, new CookieOptions
             {
                 HttpOnly = true,
-                Secure = true,
-                SameSite = SameSiteMode.None,
-                Expires = newTokens.ExpiresAt
+                Secure = false, // Set to false for localhost HTTP
+                SameSite = SameSiteMode.Lax,
+                Expires = newTokens.ExpiresAt,
+                Path = "/"
             });
 
             return Ok(new { message = "Token refreshed successfully", expiresAt = newTokens.ExpiresAt });

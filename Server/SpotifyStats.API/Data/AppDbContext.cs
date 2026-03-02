@@ -25,9 +25,11 @@ public class AppDbContext : DbContext
             entity.HasIndex(x => x.SpotifyUserId)
                 .IsUnique();
 
-            // Row version for concurrency
+            // Row version for concurrency (SQLite doesn't support rowversion, use manual incrementing)
             entity.Property(x => x.RowVersion)
-                .IsRowVersion();
+                .IsConcurrencyToken()
+                .ValueGeneratedOnAddOrUpdate()
+                .HasDefaultValue(new byte[] { 0 });
 
             // Relationship with AppUser
             entity.HasOne(x => x.User)

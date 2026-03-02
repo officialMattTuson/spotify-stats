@@ -56,6 +56,20 @@ builder.Services.AddAuthentication(options =>
         ValidateLifetime = true,
         ClockSkew = TimeSpan.Zero
     };
+    
+    // Read JWT token from cookie instead of Authorization header
+    options.Events = new JwtBearerEvents
+    {
+        OnMessageReceived = context =>
+        {
+            // Check if token is in the cookie
+            if (context.Request.Cookies.ContainsKey("auth_token"))
+            {
+                context.Token = context.Request.Cookies["auth_token"];
+            }
+            return Task.CompletedTask;
+        }
+    };
 });
 
 builder.Services.AddAuthorization();

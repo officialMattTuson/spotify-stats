@@ -59,7 +59,8 @@ public class SpotifyTokenService : ISpotifyTokenService
                 TokenType = "Bearer",
                 IsRevoked = false,
                 CreatedAtUtc = DateTime.UtcNow,
-                UpdatedAtUtc = DateTime.UtcNow
+                UpdatedAtUtc = DateTime.UtcNow,
+                RowVersion = new byte[] { 0 } // Initialize RowVersion for SQLite
             };
 
             _db.SpotifyAccounts.Add(acct);

@@ -60,7 +60,8 @@ namespace SpotifyStats.API.Migrations
                         .IsConcurrencyToken()
                         .IsRequired()
                         .ValueGeneratedOnAddOrUpdate()
-                        .HasColumnType("BLOB");
+                        .HasColumnType("BLOB")
+                        .HasDefaultValue(new byte[] { 0 });
 
                     b.Property<string>("Scope")
                         .IsRequired()
