@@ -2,6 +2,11 @@ import { Routes } from '@angular/router';
 
 export const routes: Routes = [
     {
+        path: '',
+        redirectTo: 'connect',
+        pathMatch: 'full'
+    },
+    {
         path: 'connect',
         loadComponent: () =>
             import('./features/authenticate/connect/connect').then(
@@ -16,5 +21,12 @@ export const routes: Routes = [
                 (m) => m.Dashboard
             ),
         // canActivate: [AuthenticationGuard],
+    },
+    {
+        path: 'error',
+        loadComponent: () =>
+            import('./features/authenticate/connect/connect').then(
+                (m) => m.Connect 
+            ),
     },
 ];

@@ -1,1 +1,63 @@
-<p>dashboard works!</p>
+@for (option of timeFrameOptions; track option.value) {
+<button mat-stroked-button (click)="updateTimeFrame(option.value)">{{option.label}}</button>
+}
+
+@for(option of tabOptions; track option.value) {
+<button mat-stroked-button (click)="updateItemType(option.value)">{{option.label}}</button>
+}
+
+<div class="box__container">
+  <div class="box">
+    <span class="box__value">Bad Bunny</span>
+    <span class="box__key">Your top artist</span>
+  </div>
+  <div class="box">
+    <span class="box__value">Pop</span>
+    <span class="box__key">Your top genre</span>
+  </div>
+  <div class="box">
+    <span class="box__value">DtMF</span>
+    <span class="box__key">Your recent fave</span>
+  </div>
+  <div class="box">
+    <span class="box__value">2010's</span>
+    <span class="box__key">Your Favourite Decade</span>
+  </div>
+</div>
+
+<div class="container">
+  @if (itemTabSelected() === itemTypes.Tracks) {
+    <div class="item__header">Top Tracks</div>
+    @for(track of tracks(); track track.id; let i = $index) {
+      <div class="item__container">
+        <span class="item__number">{{ i + 1 }}</span>
+          <img 
+            [src]="track.album.images[0]?.url" 
+            [alt]="track.album.name"
+            width="64"
+            height="64"
+            class="item__image"
+          />
+        <div class="item__column-left">
+          <span class="item__primary">{{track.name}}</span>
+          <span class="item__secondary">{{track.artists | pluck:'name'}}</span>
+        </div>
+        <div class="item__column-right">
+          <span class="item__secondary">{{track.album.name}}</span>
+          <div class="item__icon-row">
+            <mat-icon>schedule</mat-icon>
+            <span class="item__secondary">{{track.duration_ms | duration}}</span>
+          </div>
+        </div>
+      </div>
+    }
+  }
+  @else {
+    <span>Top Artists</span>
+      @for(artist of artists(); track artist.name) {
+      <div class="item__container">
+        <span class="item__name">{{artist.name}}</span>
+      </div>
+    }
+  }
+</div>

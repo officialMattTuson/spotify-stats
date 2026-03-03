@@ -1,4 +1,4 @@
-import { Album, Restriction } from "./album";
+import { Album, Restriction } from "./album.model";
 import { Artist, ExternalUrl } from "./artist.model";
 import { ItemType } from "./top-items.model";
 
