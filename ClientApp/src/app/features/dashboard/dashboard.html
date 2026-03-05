@@ -1,14 +1,10 @@
-@for (option of timeFrameOptions; track option.value) {
-<button mat-stroked-button (click)="updateTimeFrame(option.value)">{{option.label}}</button>
-}
-
 @for(option of tabOptions; track option.value) {
 <button mat-stroked-button (click)="updateItemType(option.value)">{{option.label}}</button>
 }
 
 <div class="box__container">
   <div class="box">
-    <span class="box__value">Bad Bunny</span>
+    <span class="box__value">{{artists()[0]?.name}}</span>
     <span class="box__key">Your top artist</span>
   </div>
   <div class="box">
@@ -16,7 +12,7 @@
     <span class="box__key">Your top genre</span>
   </div>
   <div class="box">
-    <span class="box__value">DtMF</span>
+    <span class="box__value">{{mostPlayedRecentTrack()?.track?.name}}</span>
     <span class="box__key">Your recent fave</span>
   </div>
   <div class="box">
@@ -24,13 +20,26 @@
     <span class="box__key">Your Favourite Decade</span>
   </div>
 </div>
-
-<div class="container">
-  @if (itemTabSelected() === itemTypes.Tracks) {
-    <div class="item__header">Top Tracks</div>
-    @for(track of tracks(); track track.id; let i = $index) {
-      <div class="item__container">
-        <span class="item__number">{{ i + 1 }}</span>
+<div class="layout__container">
+  <div class="layout__container-left">
+    <div class="container__top-items">
+      <div class="container__header">
+        <span>Top Tracks</span>
+        <div class="container__header-buttons">
+          @for (option of timeFrameOptions; track option.value) {
+            <button 
+              class="option-button"
+              [class.selected]="timeFrameSelected() === option.value"
+              (click)="updateTimeFrame(option.value)"
+            >
+              {{option.label}}
+            </button>
+          }
+        </div>
+      </div>
+      @for(track of tracks(); track track.id; let i = $index) {
+        <div class="item__container">
+          <span class="item__number">{{ i + 1 }}</span>
           <img 
             [src]="track.album.images[0]?.url" 
             [alt]="track.album.name"
@@ -38,26 +47,60 @@
             height="64"
             class="item__image"
           />
-        <div class="item__column-left">
-          <span class="item__primary">{{track.name}}</span>
-          <span class="item__secondary">{{track.artists | pluck:'name'}}</span>
-        </div>
-        <div class="item__column-right">
-          <span class="item__secondary">{{track.album.name}}</span>
-          <div class="item__icon-row">
-            <mat-icon>schedule</mat-icon>
-            <span class="item__secondary">{{track.duration_ms | duration}}</span>
+          <div class="item__column-left">
+            <span class="item__primary">{{track.name}}</span>
+            <span class="item__secondary">{{track.artists | pluck:'name'}}</span>
+          </div>
+          <div class="item__column-right">
+            <span class="item__secondary">{{track.album.name}}</span>
+            <div class="item__icon-row">
+              <mat-icon>schedule</mat-icon>
+              <span class="item__secondary">{{track.duration_ms | duration}}</span>
+            </div>
           </div>
         </div>
+      }
+    </div>
+    <div class="container__top-items">
+      <div class="container__header">Top Artists</div>
+      <div class="container__artists">
+        @for(artist of artists(); track artist.name; let i = $index) {
+          <div class="item__container-artist">
+            <div class="item__image-wrapper">
+              <img 
+                [src]="artist.images[0]?.url" 
+                [alt]="artist.name"
+                class="item__image"
+              />
+              <span class="item__rank-badge">{{i + 1}}</span>
+            </div>
+            <span class="item__name">{{artist.name}}</span>
+          </div>
+        }
       </div>
-    }
-  }
-  @else {
-    <span>Top Artists</span>
-      @for(artist of artists(); track artist.name) {
-      <div class="item__container">
-        <span class="item__name">{{artist.name}}</span>
-      </div>
-    }
-  }
+    </div>
+  </div> 
+  <div class="layout__container-right">
+    <div class="container__recently-played">
+      <div class="container__header">Recently Played Tracks</div>
+      @for(trackContext of recentSixTrackContexts(); track $index) {
+        <div class="item__container">
+          <img 
+            [src]="trackContext.track.album.images[0]?.url" 
+            [alt]="trackContext.track.album.name"
+            width="64"
+            height="64"
+            class="item__image"
+          />
+          <div class="item__column-left">
+            <span class="item__primary">{{trackContext.track.name}}</span>
+            <span class="item__secondary">{{trackContext.track.artists | pluck:'name'}}</span>
+          </div>
+          <div class="item__column-right">
+            <span class="item__secondary">{{trackContext.played_at | timeAgo}}</span>
+          </div>
+        </div>
+      }
+    </div>
+  </div>
 </div>

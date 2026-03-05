@@ -30,9 +30,14 @@ public class SpotifyApiClient
         return await CallSpotifyApiAsync(userId, HttpMethod.Get, $"me/top/artists?time_range={timeRange}&limit={limit}", ct);
     }
 
-    public async Task<JsonElement> GetRecentlyPlayedAsync(Guid userId, int limit = 20, CancellationToken ct = default)
+    public async Task<JsonElement> GetRecentlyPlayedAsync(Guid userId, int limit, string? before = null, CancellationToken ct = default)
     {
-        return await CallSpotifyApiAsync(userId, HttpMethod.Get, $"me/player/recently-played?limit={limit}", ct);
+        var queryString = $"me/player/recently-played?limit={limit}";
+        if (!string.IsNullOrEmpty(before))
+        {
+            queryString += $"&before={before}";
+        }
+        return await CallSpotifyApiAsync(userId, HttpMethod.Get, queryString, ct);
     }
 
     private async Task<JsonElement> CallSpotifyApiAsync(Guid userId, HttpMethod method, string endpoint, CancellationToken ct, int retryCount = 0)

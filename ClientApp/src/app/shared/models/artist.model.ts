@@ -3,7 +3,7 @@ import { ItemType } from "./top-items.model";
 
 export interface Artist {
   external_urls: ExternalUrl; 
-  image: Image;
+  images: Image[];
   name: string;
   popularity: number;
   type: ItemType.Artist;
