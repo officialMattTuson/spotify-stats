@@ -52,8 +52,8 @@ export class Dashboard {
   getTopItemsByTimeFrame(timeFrame: TimeFrames, selectedItemType: FetchableItemTypes): void {
     const tracks = this.getItemSetFromCache<Track>(this.getCacheKey(selectedItemType, timeFrame))
     tracks ? this.tracks.set(tracks) : this.getTopTracks(timeFrame);
-    const artists = this.getItemSetFromCache<Artist>(this.getCacheKey(selectedItemType, TimeFrames.LongTerm))
-    artists ? this.artists.set(artists) : this.getTopArtists(TimeFrames.LongTerm);
+    const artists = this.getItemSetFromCache<Artist>(this.getCacheKey(selectedItemType, TimeFrames.ShortTerm))
+    artists ? this.artists.set(artists) : this.getTopArtists(TimeFrames.ShortTerm);
   }
 
   getTopTracks(timeFrame: TimeFrames): void {
